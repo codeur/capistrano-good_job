@@ -6,6 +6,7 @@ module Capistrano
       set_if_empty :good_job_error_log, -> { File.join(shared_path, "log", "good_job.log") }
       set_if_empty :good_job_service_unit_name, -> { "#{fetch(:application)}_good_job_#{fetch(:stage)}" }
       set_if_empty :good_job_systemd_conf_dir, -> { fetch_systemd_unit_path }
+      set_if_empty :good_job_stop_timeout, 90
     end
 
     def define_tasks
