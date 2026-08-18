@@ -75,6 +75,27 @@ after "deploy:finished", "good_job:restart"
 See [`#register_hooks`](lib/capistrano/good_job.rb)
 
 
+## Graceful stop
+
+GoodJob stops gracefully on `SIGTERM`: it waits for the jobs in flight, then it
+exits. The service unit uses `KillMode=mixed` to keep that promise, because
+systemd then signals the main process only.
+
+Do not use the systemd default `KillMode=control-group` here: systemd signals
+every process of the cgroup, so the child processes that a job spawned (a PDF
+renderer, an image converter, a `git clone`) die in the middle of their work at
+each deploy.
+
+systemd sends `SIGKILL` to every process still alive after `TimeoutStopSec`. Set
+it above the [`shutdown_timeout`](https://github.com/bensheldon/good_job#configuration-options)
+of your application:
+
+```ruby
+# config/deploy.rb
+set :good_job_stop_timeout, 300 # seconds, defaults to 90
+```
+
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

@@ -16,6 +16,17 @@ Environment='<%= variable.to_s.upcase %>=<%= value.to_s %>'
 ExecReload=/bin/kill -s USR2 $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 
+# GoodJob stops gracefully on SIGTERM: it waits for the jobs in flight before it
+# exits. KillMode=mixed keeps that promise, because systemd then signals the main
+# process only. With the default KillMode=control-group, systemd signals every
+# process of the cgroup, so the child processes that a job spawned (a PDF
+# renderer, an image converter, a git clone) die in the middle of their work at
+# each deploy.
+# systemd sends SIGKILL to every process still alive after TimeoutStopSec. Keep
+# this value above the good_job `shutdown_timeout` of your application.
+KillMode=mixed
+TimeoutStopSec=<%= fetch(:good_job_stop_timeout) %>
+
 # if we crash, restart
 RestartSec=1
 Restart=on-failure
